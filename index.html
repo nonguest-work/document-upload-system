@@ -1,1 +1,848 @@
- 
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเก็บเอกสารประกอบ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .search-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #2196F3, #3F51B5);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .search-results {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .document-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .document-card {
+            background: white;
+            border: 2px dashed #d0d7de;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .document-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.1);
+        }
+
+        .document-card.uploaded {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0fff0 100%);
+        }
+
+        .document-card.found {
+            border-color: #ffc107;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+        }
+
+        .document-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.6;
+        }
+
+        .document-card.uploaded .upload-icon {
+            color: #28a745;
+            opacity: 1;
+        }
+
+        .document-card.found .upload-icon {
+            color: #ffc107;
+            opacity: 1;
+        }
+
+        .file-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .notification.warning {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+        }
+
+        .status-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .file-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .existing-record {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .existing-record:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .record-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-details {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .document-types {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗂️ ระบบเก็บเอกสารประกอบ</h1>
+            <p>อัพโหลดเอกสาร 4 ประเภท พร้อมข้อมูลพนักงานขายและลูกค้า</p>
+        </div>
+
+        <!-- ส่วนค้นหาเอกสารที่มีอยู่ -->
+        <div class="search-section">
+            <h3>🔍 ค้นหาเอกสารที่มีอยู่แล้ว</h3>
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="ค้นหาด้วยชื่อพนักงานขาย หรือ ชื่อลูกค้า">
+                <button class="search-btn" onclick="searchExistingDocuments()">ค้นหา</button>
+            </div>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <form id="documentForm">
+            <div class="form-section">
+                <h3>📋 ข้อมูลพื้นฐาน</h3>
+                <div class="form-group">
+                    <label for="salesPerson">👤 ชื่อพนักงานขาย:</label>
+                    <select id="salesPerson" name="salesPerson" required>
+                        <option value="">-- เลือกพนักงานขาย --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="customerName">🏢 ชื่อลูกค้า:</label>
+                    <input type="text" id="customerName" name="customerName" required placeholder="กรอกชื่อลูกค้า">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>📁 อัพโหลดเอกสาร</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">กรุณาอัพโหลดเอกสาร 0/4</div>
+
+                <div class="document-types">
+                    <div class="document-card" data-type="sms">
+                        <div class="upload-icon">📱</div>
+                        <h3>รูป SMS</h3>
+                        <p>อัพโหลดภาพหน้าจอ SMS</p>
+                        <input type="file" class="file-input" accept="image/*" data-type="sms">
+                        <div class="file-preview" id="preview-sms" style="display: none;"></div>
+                    </div>
+
+                    <div class="document-card" data-type="checklist">
+                        <div class="upload-icon">✅</div>
+                        <h3>เช็คลิสต์ส่งมอบ</h3>
+                        <p>อัพโหลดเช็คลิสต์การส่งมอบ</p>
+                        <input type="file" class="file-input" accept="image/*,application/pdf" data-type="checklist">
+                        <div class="file-preview" id="preview-checklist" style="display: none;"></div>
+                    </div>
+
+                    <div class="document-card" data-type="ddms">
+                        <div class="upload-icon">🧾</div>
+                        <h3>ใบตัดขาย DDMS</h3>
+                        <p>อัพโหลดใบตัดขายจากระบบ DDMS</p>
+                        <input type="file" class="file-input" accept="image/*,application/pdf" data-type="ddms">
+                        <div class="file-preview" id="preview-ddms" style="display: none;"></div>
+                    </div>
+
+                    <div class="document-card" data-type="tax">
+                        <div class="upload-icon">📄</div>
+                        <h3>ใบกำกับภาษี</h3>
+                        <p>อัพโหลดใบกำกับภาษี</p>
+                        <input type="file" class="file-input" accept="image/*,application/pdf" data-type="tax">
+                        <div class="file-preview" id="preview-tax" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="submit-btn" id="saveBtn" onclick="saveDocuments()">
+                💾 บันทึกเอกสาร (ไม่จำเป็นต้องครบทั้งหมด)
+            </button>
+
+            <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                🚀 ส่งข้อมูลและเอกสารทั้งหมด (ครบ 4 เอกสาร)
+            </button>
+        </form>
+
+        <div id="statusMessage" style="display: none;"></div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // รายชื่อพนักงานขายจากไฟล์ Excel
+        const salesPeopleList = [
+            "น.ส. กันตีณีย์ เจ๊ะแว",
+            "น.ส. นูรีซัม เจ๊ะมิง",
+            "น.ส. ภาดีละห์ แวสามะ",
+            "น.ส. รอซีด๊ะ ปูซู",
+            "น.ส. โนรีซัน แจ่มจันทรา",
+            "น.ส.ชาริณีย์  แวมะแซ",
+            "น.ส.ซูไฮลา  อูเซ็ง",
+            "น.ส.ฟิรเดาส์  อาแว",
+            "น.ส.วรารัตน์ แซ่เตียว",
+            "น.ส.อานิสา  เลาะซา",
+            "นางฟารีดา  เต้งชู",
+            "นาย  มูฮัมหมัดอาบีดีน หะมะ",
+            "นาย มูฮัมหมัดกาดาฟี มะเซ็ง",
+            "นาย อนุสรณ์ ลักษณะโสภา",
+            "นายซูดิง  ฮาซา",
+            "นายมะซากี  จะปะกียา",
+            "นายมูฮัมหมัดรุสลี  กาซอ",
+            "นายมูฮำมัด  อับดุลเลาะ",
+            "นายมูฮำมัดซากี  สะนิ",
+            "นายสุไบดี  มะนอร์",
+            "นายอามิ  อุมา",
+            "นายอาหามะ  ดอเลาะ"
+        ];
+
+        // Variables to track uploaded files
+        let uploadedFiles = {};
+        let existingRecords = {}; // เก็บข้อมูลที่บันทึกไว้แล้ว
+        let currentRecordId = null; // รหัสเรคอร์ดปัจจุบันที่กำลังแก้ไข
+        let fileCount = 0;
+        const totalFiles = 4;
+
+        // Document type mappings
+        const documentTypes = {
+            'sms': 'รูป SMS',
+            'checklist': 'เช็คลิสต์ส่งมอบ',
+            'ddms': 'ใบตัดขาย DDMS',
+            'tax': 'ใบกำกับภาษี'
+        };
+
+        // Initialize the application
+        function initializeApp() {
+            // เพิ่มรายชื่อพนักงานขายใน dropdown
+            const salesPersonSelect = document.getElementById('salesPerson');
+            salesPeopleList.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                salesPersonSelect.appendChild(option);
+            });
+
+            // Initialize file input handlers
+            document.querySelectorAll('.file-input').forEach(input => {
+                input.addEventListener('change', handleFileUpload);
+            });
+
+            // Load existing records from localStorage simulation
+            loadExistingRecords();
+            
+            updateProgress();
+        }
+
+        // Load existing records (simulation)
+        function loadExistingRecords() {
+            // จำลองข้อมูลที่มีอยู่แล้ว (ในการใช้งานจริงจะดึงจาก database หรือ API)
+            existingRecords = {
+                'record1': {
+                    id: 'record1',
+                    salesPerson: 'นายอามิ  อุมา',
+                    customerName: 'บริษัท ABC จำกัด',
+                    files: ['sms', 'checklist'],
+                    timestamp: '2025-06-19 10:30'
+                },
+                'record2': {
+                    id: 'record2',
+                    salesPerson: 'น.ส. กันตีณีย์ เจ๊ะแว',
+                    customerName: 'ห้างหุ้นส่วน XYZ',
+                    files: ['ddms'],
+                    timestamp: '2025-06-19 14:20'
+                }
+            };
+        }
+
+        // Search existing documents
+        function searchExistingDocuments() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchResults = document.getElementById('searchResults');
+            
+            if (searchTerm.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            const results = Object.values(existingRecords).filter(record => 
+                record.salesPerson.toLowerCase().includes(searchTerm) ||
+                record.customerName.toLowerCase().includes(searchTerm)
+            );
+
+            if (results.length > 0) {
+                searchResults.innerHTML = '<h4>📄 พบเอกสารที่มีอยู่แล้ว:</h4>';
+                results.forEach(record => {
+                    const recordDiv = document.createElement('div');
+                    recordDiv.className = 'existing-record';
+                    recordDiv.onclick = () => loadExistingRecord(record);
+                    
+                    const filesBadges = record.files.map(type => 
+                        `<span class="badge">${documentTypes[type]}</span>`
+                    ).join('');
+                    
+                    recordDiv.innerHTML = `
+                        <div class="record-info">
+                            <div>
+                                <strong>${record.salesPerson}</strong> - ${record.customerName}
+                                <div class="record-details">
+                                    มีเอกสาร ${record.files.length}/4 ชิ้น - ${record.timestamp}
+                                </div>
+                            </div>
+                            <div>${filesBadges}</div>
+                        </div>
+                    `;
+                    searchResults.appendChild(recordDiv);
+                });
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.innerHTML = '<p>❌ ไม่พบข้อมูลที่ค้นหา</p>';
+                searchResults.style.display = 'block';
+            }
+        }
+
+        // Load existing record for editing
+        function loadExistingRecord(record) {
+            currentRecordId = record.id;
+            
+            // เติมข้อมูลในฟอร์ม
+            document.getElementById('salesPerson').value = record.salesPerson;
+            document.getElementById('customerName').value = record.customerName;
+            
+            // อัพเดทสถานะเอกสารที่มีอยู่แล้ว
+            fileCount = 0;
+            uploadedFiles = {};
+            
+            // รีเซ็ตการ์ดทั้งหมด
+            document.querySelectorAll('.document-card').forEach(card => {
+                card.classList.remove('uploaded', 'found');
+            });
+            document.querySelectorAll('.file-preview').forEach(preview => {
+                preview.style.display = 'none';
+            });
+            
+            // แสดงเอกสารที่มีอยู่แล้ว
+            record.files.forEach(type => {
+                const card = document.querySelector(`[data-type="${type}"]`);
+                const preview = document.getElementById(`preview-${type}`);
+                
+                card.classList.add('found');
+                preview.style.display = 'block';
+                preview.innerHTML = `
+                    <strong>✅ มีเอกสารนี้แล้ว</strong><br>
+                    <small>📅 ${record.timestamp}</small>
+                `;
+                
+                // จำลองไฟล์ที่มีอยู่
+                uploadedFiles[type] = {
+                    existing: true,
+                    name: `${documentTypes[type]}_${record.timestamp}`,
+                    recordId: record.id
+                };
+                fileCount++;
+            });
+            
+            updateProgress();
+            showNotification('📂 โหลดข้อมูลเรคอร์ดที่มีอยู่แล้วเรียบร้อย', 'success');
+            
+            // ซ่อนผลลัพธ์การค้นหา
+            document.getElementById('searchResults').style.display = 'none';
+        }
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            const type = event.target.dataset.type;
+            const card = event.target.closest('.document-card');
+            const preview = document.getElementById(`preview-${type}`);
+
+            if (file) {
+                // ตรวจสอบว่ามีไฟล์ประเภทนี้อยู่แล้วหรือไม่
+                const wasExisting = uploadedFiles[type] && uploadedFiles[type].existing;
+                const hadFile = uploadedFiles[type] !== undefined;
+                
+                // ถ้าไม่เคยมีไฟล์ประเภทนี้มาก่อน ให้เพิ่ม count
+                if (!hadFile) {
+                    fileCount++;
+                }
+
+                // Store file information
+                uploadedFiles[type] = {
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    existing: false
+                };
+
+                // Update card appearance
+                card.classList.remove('found');
+                card.classList.add('uploaded');
+                
+                // Show file preview
+                preview.style.display = 'block';
+                preview.innerHTML = `
+                    <strong>ไฟล์ใหม่:</strong> ${file.name}<br>
+                    <strong>ขนาด:</strong> ${(file.size / 1024 / 1024).toFixed(2)} MB<br>
+                    <strong>ประเภท:</strong> ${file.type}
+                    ${wasExisting ? '<br><small>🔄 แทนที่ไฟล์เก่า</small>' : ''}
+                `;
+
+                updateProgress();
+                
+                if (wasExisting) {
+                    showNotification(`🔄 แทนที่ ${documentTypes[type]} ด้วยไฟล์ใหม่`, 'warning');
+                } else {
+                    showNotification(`✅ อัพโหลด ${documentTypes[type]} เรียบร้อย`, 'success');
+                }
+            }
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (fileCount / totalFiles) * 100;
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const submitBtn = document.getElementById('submitBtn');
+
+            progressFill.style.width = progress + '%';
+            progressText.textContent = `อัพโหลดเอกสารแล้ว ${fileCount}/${totalFiles}`;
+
+            // Enable submit button when all files are uploaded
+            if (fileCount === totalFiles) {
+                submitBtn.disabled = false;
+                progressText.textContent = `✅ อัพโหลดเอกสารครบทั้งหมดแล้ว ${fileCount}/${totalFiles}`;
+                showNotification('🎉 เอกสารครบทั้ง 4 ประเภทแล้ว! พร้อมส่งข้อมูล', 'success');
+            } else {
+                submitBtn.disabled = true;
+            }
+        }
+
+        // Save documents (partial save)
+        function saveDocuments() {
+            const salesPerson = document.getElementById('salesPerson').value;
+            const customerName = document.getElementById('customerName').value;
+
+            if (!salesPerson || !customerName) {
+                showNotification('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+                return;
+            }
+
+            if (fileCount === 0) {
+                showNotification('กรุณาอัพโหลดเอกสารอย่างน้อย 1 ชิ้น', 'error');
+                return;
+            }
+
+            // สร้าง record ID ใหม่หรือใช้ของเก่า
+            const recordId = currentRecordId || 'record_' + Date.now();
+            const timestamp = new Date().toLocaleString('th-TH');
+
+            // อัพเดทข้อมูลในระบบ
+            existingRecords[recordId] = {
+                id: recordId,
+                salesPerson: salesPerson,
+                customerName: customerName,
+                files: Object.keys(uploadedFiles),
+                timestamp: timestamp
+            };
+
+            currentRecordId = recordId;
+
+            // จำลองการบันทึกข้อมูล
+            console.log('บันทึกข้อมูล:', {
+                recordId,
+                salesPerson,
+                customerName,
+                files: Object.keys(uploadedFiles),
+                fileCount: fileCount
+            });
+
+            showNotification(`💾 บันทึกข้อมูลเรียบร้อย (${fileCount}/${totalFiles} เอกสาร)`, 'success');
+        }
+
+        // Handle form submission (complete submission)
+        document.getElementById('documentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const salesPerson = document.getElementById('salesPerson').value;
+            const customerName = document.getElementById('customerName').value;
+
+            if (!salesPerson || !customerName) {
+                showNotification('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+                return;
+            }
+
+            if (fileCount < totalFiles) {
+                showNotification('กรุณาอัพโหลดเอกสารให้ครบทั้ง 4 ประเภท', 'error');
+                return;
+            }
+
+            // Prepare data for n8n webhook
+            const formData = new FormData();
+            formData.append('salesPerson', salesPerson);
+            formData.append('customerName', customerName);
+            formData.append('timestamp', new Date().toISOString());
+            formData.append('recordId', currentRecordId || 'new_' + Date.now());
+
+            // Add all files to FormData
+            Object.keys(uploadedFiles).forEach(type => {
+                const fileData = uploadedFiles[type];
+                if (!fileData.existing && fileData.file) {
+                    formData.append(`file_${type}`, fileData.file, fileData.name);
+                }
+                formData.append(`fileInfo_${type}`, JSON.stringify({
+                    name: fileData.name,
+                    size: fileData.size || 0,
+                    type: fileData.type || 'existing',
+                    documentType: documentTypes[type],
+                    existing: fileData.existing || false
+                }));
+            });
+
+            try {
+                showNotification('🔄 กำลังส่งข้อมูลไป n8n...', 'success');
+                
+                // This is where you would send to your n8n webhook
+                // Replace 'YOUR_N8N_WEBHOOK_URL' with your actual n8n webhook URL
+                
+                const response = await fetch('YOUR_N8N_WEBHOOK_URL', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showNotification('✅ ส่งข้อมูลสำเร็จ! ระบบกำลังเก็บไฟล์ลง Google Drive', 'success');
+                    
+                    // อัพเดทสถานะในระบบ
+                    if (currentRecordId && existingRecords[currentRecordId]) {
+                        existingRecords[currentRecordId].completed = true;
+                        existingRecords[currentRecordId].completedAt = new Date().toLocaleString('th-TH');
+                    }
+                    
+                    setTimeout(() => {
+                        resetForm();
+                    }, 2000);
+                } else {
+                    showNotification('❌ เกิดข้อผิดพลาดในการส่งข้อมูล', 'error');
+                }
+            } catch (error) {
+                console.log('สำหรับการทดสอบ: ข้อมูลที่จะส่งไป n8n:', {
+                    salesPerson,
+                    customerName,
+                    files: Object.keys(uploadedFiles),
+                    recordId: currentRecordId,
+                    timestamp: new Date().toISOString()
+                });
+                
+                showNotification('✅ ข้อมูลพร้อมส่ง! (ในโหมดทดสอบ)', 'success');
+                
+                setTimeout(() => {
+                    resetForm();
+                }, 2000);
+            }
+        });
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+
+        // Reset form
+        function resetForm() {
+            uploadedFiles = {};
+            fileCount = 0;
+            currentRecordId = null;
+            
+            document.getElementById('documentForm').reset();
+            document.querySelectorAll('.document-card').forEach(card => {
+                card.classList.remove('uploaded', 'found');
+            });
+            document.querySelectorAll('.file-preview').forEach(preview => {
+                preview.style.display = 'none';
+            });
+            
+            updateProgress();
+            showNotification('🔄 เริ่มต้นใหม่ พร้อมรับเอกสารชุดถัดไป', 'success');
+        }
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html> 
