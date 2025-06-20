@@ -429,7 +429,7 @@
             </button>
 
             <button type="submit" class="submit-btn" id="submitBtn" disabled>
-                🚀 ส่งข้อมูลและเอกสารทั้งหมด (ครบ 4 เอกสาร)
+                🚀 ส่งข้อมูลและเอกสาร (อย่างน้อย 1 ไฟล์)
             </button>
         </form>
 
@@ -677,11 +677,15 @@
             progressFill.style.width = progress + '%';
             progressText.textContent = `อัพโหลดเอกสารแล้ว ${fileCount}/${totalFiles}`;
 
-            // Enable submit button when all files are uploaded
-            if (fileCount === totalFiles) {
+            // Enable submit button when at least 1 file is uploaded
+            if (fileCount >= 1) {
                 submitBtn.disabled = false;
-                progressText.textContent = `✅ อัพโหลดเอกสารครบทั้งหมดแล้ว ${fileCount}/${totalFiles}`;
-                showNotification('🎉 เอกสารครบทั้ง 4 ประเภทแล้ว! พร้อมส่งข้อมูล', 'success');
+                if (fileCount === totalFiles) {
+                    progressText.textContent = `✅ อัพโหลดเอกสารครบทั้งหมดแล้ว ${fileCount}/${totalFiles}`;
+                    showNotification('🎉 เอกสารครบทั้ง 4 ประเภทแล้ว! พร้อมส่งข้อมูล', 'success');
+                } else {
+                    progressText.textContent = `📤 อัพโหลดเอกสารแล้ว ${fileCount}/${totalFiles} - พร้อมส่งได้แล้ว`;
+                }
             } else {
                 submitBtn.disabled = true;
             }
@@ -741,8 +745,8 @@
                 return;
             }
 
-            if (fileCount < totalFiles) {
-                showNotification('กรุณาอัพโหลดเอกสารให้ครบทั้ง 4 ประเภท', 'error');
+            if (fileCount === 0) {
+                showNotification('กรุณาอัพโหลดเอกสารอย่างน้อย 1 ชิ้น', 'error');
                 return;
             }
 
@@ -845,7 +849,6 @@
         document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
 </body>
-</html>
 </html>
 </body>
 </html> 
